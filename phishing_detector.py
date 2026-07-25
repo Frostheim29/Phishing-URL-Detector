@@ -51,6 +51,7 @@ X_test_vec = vectorizer.transform(X_test)
 # ----------------------------
 # 4. Train the model
 # ----------------------------
+#@7
 print("Training model...")
 model = LogisticRegression(max_iter=1000, class_weight='balanced')
 model.fit(X_train_vec, y_train)
@@ -58,6 +59,7 @@ model.fit(X_train_vec, y_train)
 # ----------------------------
 # 5. Evaluate
 # ----------------------------
+#@8
 y_pred = model.predict(X_test_vec)
 print("\nAccuracy:", accuracy_score(y_test, y_pred))
 print("\nClassification Report:\n", classification_report(y_test, y_pred))
@@ -65,6 +67,7 @@ print("\nClassification Report:\n", classification_report(y_test, y_pred))
 # ----------------------------
 # 6. Save the model and vectorizer
 # ----------------------------
+#@9
 joblib.dump(model, "phishing_model.pkl")
 joblib.dump(vectorizer, "vectorizer.pkl")
 print("\nModel and vectorizer saved")
@@ -72,6 +75,7 @@ print("\nModel and vectorizer saved")
 # ----------------------------
 # 7. Try it on your own URLs!
 # ----------------------------
+#@10
 def check_url(url):
     vec = vectorizer.transform([normalize_url(url)])
     prediction = model.predict(vec)[0]
