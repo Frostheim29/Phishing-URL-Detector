@@ -57,6 +57,14 @@ print("\nAccuracy:", accuracy_score(y_test, y_pred))
 print("\nClassification Report:\n", classification_report(y_test, y_pred))
 
 # ----------------------------
+# Note: Random Forest was tested here and compared against Logistic Regression.
+# Logistic Regression performed better (87% vs 81% accuracy, better precision/recall
+# on phishing class), likely because Logistic Regression handles high-dimensional
+# sparse TF-IDF features more effectively than tree-based models.
+# Logistic Regression was kept as the final model.
+# ----------------------------
+
+# ----------------------------
 # 6. Save the model and vectorizer
 # ----------------------------
 joblib.dump(model, "phishing_model.pkl")

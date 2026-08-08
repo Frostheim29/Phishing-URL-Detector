@@ -33,6 +33,18 @@ Phishing websites trick users into revealing sensitive information by mimicking 
 
 *(These metrics reflect the ML model alone, evaluated on the held-out test set, before the whitelist layer is applied.)*
 
+## Model Selection
+Logistic Regression and Random Forest were both trained and compared on the same TF-IDF character n-gram features:
+
+| Metric | Logistic Regression | Random Forest |
+|--------|---------------------|----------------|
+| Accuracy | 0.87 | 0.81 |
+| Phishing Precision | 0.59 | 0.48 |
+| Phishing Recall | 0.89 | 0.79 |
+| Phishing F1-score | 0.71 | 0.59 |
+
+Logistic Regression performed better across all metrics, likely because it handles high-dimensional sparse text features (like TF-IDF) more effectively than tree-based models, which tend to perform better on structured/tabular data instead. Logistic Regression was kept as the final model.
+
 ## Known Limitations
 This project surfaced a real and instructive ML challenge: **dataset bias**. The training data is skewed toward older/niche websites (forums, personal blogs) as "legitimate" examples, with fewer modern major sites (e.g. Google, Wikipedia, university domains) represented. As a result, the ML model alone sometimes misjudges well-known modern URLs it hasn't seen similar examples of during training. The whitelist layer is a practical patch for this specific gap — not a substitute for better training data — and only covers a small, manually chosen list of domains.
 
