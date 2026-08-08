@@ -7,6 +7,8 @@ Phishing websites trick users into revealing sensitive information by mimicking 
 ## Project Structure
 - **`phishing_detector.py`** — loads the dataset, trains the model, evaluates it, and saves the trained model + vectorizer to disk (`phishing_model.pkl`, `vectorizer.pkl`). Run this first, and only when you want to retrain.
 - **`check_phishing.py`** — loads the already-trained model and lets you interactively type any URL to get an instant prediction. This is the tool you actually use to check URLs day-to-day.
+- **`app.py`** — Streamlit web interface for checking URLs through a browser instead of the command line
+- **`requirements.txt`** — list of Python packages needed to run this project
 
 ## Dataset
 - **Source:** [Malicious URLs dataset](https://www.kaggle.com/datasets/sid321axn/malicious-urls-dataset) (Kaggle)
@@ -55,17 +57,32 @@ This reflects a common real-world ML issue: a model is only as representative as
 - pandas
 - scikit-learn (TF-IDF, Logistic Regression)
 - joblib
+- Streamlit (web interface)
 
 ## How to Run
+**1. Install dependencies:**
 ```bash
-pip install pandas scikit-learn joblib
+pip install -r requirements.txt
+```
 
-# Step 1: Train the model (run once, or whenever you want to retrain)
+**2. Train the model** (run once, or whenever you want to retrain):
+```bash
 python phishing_detector.py
+```
 
-# Step 2: Check URLs interactively
+**3. Check URLs** — two ways to use it:
+
+**Option A — Command line (interactive or batch):**
+```bash
 python check_phishing.py
 ```
+Choose to check a single URL interactively, or check multiple URLs at once from a text file.
+
+**Option B — Web interface:**
+```bash
+streamlit run app.py
+```
+Opens a browser-based UI where you can type a URL and instantly see the result.
 
 ## Future Improvements
 - Expand the trusted domain whitelist or replace it with a maintained public list
