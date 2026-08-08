@@ -11,13 +11,13 @@ def normalize_url(url):
 model = joblib.load("phishing_model.pkl")
 vectorizer = joblib.load("vectorizer.pkl")
 
-# A small list of well-known, trusted domains
-TRUSTED_DOMAINS = [
-    "google.com", "wikipedia.org", "reddit.com", "github.com",
-    "youtube.com", "facebook.com", "twitter.com", "linkedin.com",
-    "microsoft.com", "apple.com", "amazon.com", "stanford.edu",
-    "mit.edu", "wikipedia.com"
-]
+# Trusted domains
+def load_trusted_domains(filepath="trusted_domains.txt"):
+    with open(filepath, "r") as f:
+        domains = [line.strip().lower() for line in f if line.strip()]
+    return domains
+
+TRUSTED_DOMAINS = load_trusted_domains()
 
 def check_url(url):
     normalized = normalize_url(url)
