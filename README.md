@@ -1,4 +1,6 @@
 # Phishing URL Detector
+🔗 **[Try it live](https://phishing-url-detector-ananya.streamlit.app)** — check any URL instantly in your browser
+
 A machine learning model that classifies URLs as **phishing** or **legitimate**, trained on 500K+ real-world URLs using character-level text patterns and Logistic Regression, with a trusted-domain whitelist layer for known safe sites.
 
 ## Overview
