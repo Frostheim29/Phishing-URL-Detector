@@ -1,0 +1,7 @@
+# Web API runtime. Install these inside the backend's Python environment.
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.30,<1.0
+pydantic>=2.7,<3.0
+# Existing detector runtime; the model/vectorizer remain in the repository root.
+joblib>=1.3,<2.0
+scikit-learn==1.9.0

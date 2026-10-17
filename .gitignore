@@ -1,7 +1,31 @@
+
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+.venv/
+.pytest_cache/
+backend/.pytest_cache/
+backend/.pytest-run/
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Secrets
 .env
-venv/
+.env.*
+!.env.example
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Logs
+*.log
+
+
+# Local scan history and datasets
 check_history.csv
 malicious_phish.csv
 phishing.csv
