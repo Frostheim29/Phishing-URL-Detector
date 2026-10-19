@@ -15,5 +15,11 @@ if str(PROJECT_ROOT) not in sys.path:
 
 def allowed_origins() -> list[str]:
     """Return comma-separated browser origins from PHISHGUARD_ALLOWED_ORIGINS."""
-    value = os.getenv("PHISHGUARD_ALLOWED_ORIGINS", "http://localhost:5173")
-    return [origin.strip() for origin in value.split(",") if origin.strip()]
+    defaults = [
+        "http://localhost:5173",
+        "https://phishing-url-detector-l6tu.onrender.com",
+    ]
+    value = os.getenv("PHISHGUARD_ALLOWED_ORIGINS")
+    origins = value.split(",") if value else defaults
+    return [origin.strip().rstrip("/") for origin in origins if origin.strip()]
+
