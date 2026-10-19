@@ -1,97 +1,391 @@
-# Phishing URL Detector
-🔗 **[Try it live](https://phishing-url-detector-ananya.streamlit.app)** — check any URL instantly in your browser
+# PhishGuard — Phishing URL Detection Platform
 
-A machine learning model that classifies URLs as **phishing** or **legitimate**, trained on 500K+ real-world URLs using character-level text patterns and Logistic Regression, with a trusted-domain whitelist layer for known safe sites.
+**Detect suspicious URLs using machine learning and heuristic analysis.**
+
+PhishGuard is a full-stack web application that analyzes URLs, assigns risk scores, explains suspicious signals, and helps users scan individual URLs or batches of URLs through a security-focused dashboard.
+
+**Live Application:** https://phishing-url-detector-l6tu.onrender.com  
+**Backend API:** https://phishguard-api-qxf5.onrender.com  
+**Interactive API Documentation:** https://phishguard-api-qxf5.onrender.com/docs
+
+---
 
 ## Overview
-Phishing websites trick users into revealing sensitive information by mimicking legitimate sites. This project analyzes the raw text of a URL, using overlapping 3-5 character sequences to learn patterns that distinguish phishing attempts from legitimate URLs, without relying on manually engineered rules. A whitelist layer handles well-known domains separately to compensate for gaps in the training data (see Known Limitations).
 
-## Project Structure
-- **`phishing_detector.py`** — loads the dataset, trains the model, evaluates it, and saves the trained model + vectorizer to disk (`phishing_model.pkl`, `vectorizer.pkl`). Run this first, and only when you want to retrain.
-- **`check_phishing.py`** — loads the already-trained model and lets you interactively type any URL to get an instant prediction. This is the tool you actually use to check URLs day-to-day.
-- **`app.py`** — Streamlit web interface for checking URLs through a browser instead of the command line
-- **`requirements.txt`** — list of Python packages needed to run this project
+Phishing attacks use deceptive URLs and websites to trick users into revealing credentials, financial information, and other sensitive data. PhishGuard evaluates URL structure and machine-learning signals to help users identify potentially dangerous links.
 
-## Dataset
-- **Source:** [Malicious URLs dataset](https://www.kaggle.com/datasets/sid321axn/malicious-urls-dataset) (Kaggle)
-- **Used:** 522,214 URLs (benign vs phishing subset of the full dataset)
-- **Labels:** benign (0) / phishing (1)
+The application combines a React frontend, a FastAPI backend, a machine-learning model, heuristic URL analysis, and SQLite-based scan history.
 
-## Approach
-1. Normalized URLs (removed `http://`, `https://`, `www.` prefixes) to prevent the model from learning superficial formatting patterns instead of real content
-2. Converted URLs into numerical features using **TF-IDF character n-grams** (3-5 character sequences), capturing patterns like suspicious substrings and structure without hand-crafted rules
-3. Trained a **Logistic Regression** classifier with balanced class weights to handle the imbalance between phishing and legitimate examples
-4. Evaluated using accuracy, precision, recall, and F1-score on a held-out test set
-5. Added a small **trusted domain whitelist** (Google, Wikipedia, GitHub, major universities, etc.) checked before the ML model, so well-known legitimate sites aren't misjudged due to dataset gaps
+PhishGuard is a defensive analysis tool. Its results are assessments, not guarantees that a URL is safe or malicious.
 
-## Results
-- **Accuracy:** 87%
-- **Phishing recall:** 89% (correctly catches most phishing URLs)
-- **Legitimate precision:** 97% (rarely misflags real sites)
+## Features
 
-| Metric | Legitimate (0) | Phishing (1) |
-|--------|-----------------|----------------|
-| Precision | 0.97 | 0.59 |
-| Recall | 0.87 | 0.89 |
-| F1-score | 0.92 | 0.71 |
+### URL Scanner
+- Analyze a URL through the web dashboard.
+- Calculate a risk score from 0 to 100.
+- Display a risk level and verdict.
+- Show machine-learning and heuristic scores.
+- Explain the assessment through security signals and URL analysis details.
 
-*(These metrics reflect the ML model alone, evaluated on the held-out test set, before the whitelist layer is applied.)*
+### Machine Learning and Heuristic Analysis
+- Uses the existing trained model and vectorizer.
+- Combines model-based scoring with structural URL heuristics.
+- Examines URL characteristics such as HTTPS usage, domain structure, suspicious keywords, unusual ports, encoded characters, and other indicators.
+- Uses trusted-domain information as one legitimacy signal, with safeguards against ML-only score inflation.
 
-## Model Selection
-Logistic Regression and Random Forest were both trained and compared on the same TF-IDF character n-gram features:
+### Batch Scanner
+- Submit multiple URLs in a single request.
+- Import URL lists from `.txt` and `.csv` files through the frontend.
+- Review individual scan results and batch summaries.
+- Export scan results to CSV.
+- Handle individual scan failures without necessarily stopping the entire batch.
 
-| Metric | Logistic Regression | Random Forest |
-|--------|---------------------|----------------|
-| Accuracy | 0.87 | 0.81 |
-| Phishing Precision | 0.59 | 0.48 |
-| Phishing Recall | 0.89 | 0.79 |
-| Phishing F1-score | 0.71 | 0.59 |
+### Scan History
+- Save completed scan results to a local SQLite database.
+- Retrieve recent scans through the API.
+- Review previous assessments in the dashboard.
 
-Logistic Regression performed better across all metrics, likely because it handles high-dimensional sparse text features (like TF-IDF) more effectively than tree-based models, which tend to perform better on structured/tabular data instead. Logistic Regression was kept as the final model.
+### Dashboard and Analytics
+- View scan statistics and risk distributions.
+- Review safe, flagged, and high-risk assessment counts.
+- Navigate between the dashboard, URL scanner, batch scanner, scan history, and analytics sections.
 
-## Known Limitations
-This project surfaced a real and instructive ML challenge: **dataset bias**. The training data is skewed toward older/niche websites (forums, personal blogs) as "legitimate" examples, with fewer modern major sites (e.g. Google, Wikipedia, university domains) represented. As a result, the ML model alone sometimes misjudges well-known modern URLs it hasn't seen similar examples of during training. The whitelist layer is a practical patch for this specific gap — not a substitute for better training data — and only covers a small, manually chosen list of domains.
-
-This reflects a common real-world ML issue: a model is only as representative as the data it's trained on, not a flaw in the modeling approach itself.
+### REST API
+- FastAPI-powered endpoints.
+- Interactive Swagger documentation.
+- Health checks that report whether the model is available.
+- Structured JSON responses and request validation.
 
 ## Tech Stack
-- Python
-- pandas
-- scikit-learn (TF-IDF, Logistic Regression)
-- joblib
-- Streamlit (web interface)
 
-## How to Run
-**1. Install dependencies:**
+| Component | Technologies |
+|---|---|
+| Frontend | React, TypeScript, Vite |
+| Styling and UI | Tailwind CSS, Lucide React |
+| Charts | Recharts |
+| Backend | Python, FastAPI, Uvicorn |
+| Machine Learning | scikit-learn, joblib |
+| Data Analysis | NumPy, SciPy |
+| Database | SQLite |
+| Testing | pytest, Node.js test runner |
+| Version Control | Git and GitHub |
+| Deployment | Render Static Site and Web Service |
+
+## System Architecture
+
+```text
+User
+  |
+  v
+React + TypeScript Frontend
+  |
+  | HTTP / JSON
+  v
+FastAPI Backend
+  |
+  +---- URL Risk Engine
+  |       |
+  |       +---- Trained ML Model
+  |       +---- URL Heuristics
+  |       +---- Trusted Domain List
+  |
+  +---- SQLite Scan History
+  |
+  v
+Risk Assessment JSON Response
+  |
+  v
+Dashboard / Results / Analytics
+```
+
+The frontend communicates with the backend through REST API requests. The backend runs the risk analysis, returns the assessment, and saves successful scans to history.
+
+## Risk Assessment
+
+PhishGuard returns a risk score from 0 to 100.
+
+| Risk Score | Risk Level |
+|---|---|
+| 0–24 | Low |
+| 25–49 | Medium |
+| 50–74 | High |
+| 75–100 | Critical |
+
+The risk engine combines the model score and heuristic score, with a trusted-domain safeguard where applicable.
+
+**Important:** `model_score` is a model-derived signal, not a calibrated real-world probability that a URL is malicious. A low risk score does not guarantee that a URL is safe. Trusted-domain matches are also not a substitute for independent verification.
+
+The API reports the analysis mode so clients can distinguish combined ML and heuristic analysis from heuristic-only fallback.
+
+## Project Structure
+
+```text
+Phishing-URL-Detector/
+|
++-- backend/
+|   +-- app/
+|   |   +-- api/
+|   |   |   +-- routes/
+|   |   |       +-- health.py
+|   |   |       +-- scan.py
+|   |   |       +-- history.py
+|   |   +-- core/
+|   |   |   +-- config.py
+|   |   +-- schemas/
+|   |   +-- services/
+|   |   +-- main.py
+|   +-- tests/
+|   +-- requirements.txt
+|
++-- frontend/
+|   +-- src/
+|   +-- tests/
+|   +-- public/
+|   +-- package.json
+|   +-- vite.config.ts
+|   +-- .env.example
+|
++-- risk_engine.py
++-- url_analyzer.py
++-- phishing_model.pkl
++-- vectorizer.pkl
++-- trusted_domains.txt
++-- app.py
++-- README.md
++-- .gitignore
+```
+
+The root-level `app.py` is part of the earlier Streamlit implementation. The deployed full-stack application uses the FastAPI backend and React frontend.
+
+## Getting Started Locally
+
+### Prerequisites
+
+Install the following:
+
+- Python 3.12.10
+- Node.js and npm
+- Git
+
+### 1. Clone the Repository
+
 ```bash
+git clone https://github.com/Frostheim29/Phishing-URL-Detector.git
+cd Phishing-URL-Detector
+```
+
+### 2. Set Up the Backend
+
+Create and activate a virtual environment from the repository root:
+
+**Windows PowerShell**
+
+```powershell
+cd backend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-**2. Train the model** (run once, or whenever you want to retrain):
-```bash
-python phishing_detector.py
+Return to the repository root and start the API:
+
+```powershell
+cd ..
+python -m uvicorn app.main:app --app-dir backend --reload --port 8000
 ```
 
-**3. Check URLs** — two ways to use it:
+The backend will be available at:
 
-**Option A — Command line (interactive or batch):**
-```bash
-python check_phishing.py
-```
-Choose to check a single URL interactively, or check multiple URLs at once from a text file.
+- API health: http://127.0.0.1:8000/api/health
+- API documentation: http://127.0.0.1:8000/docs
 
-**Option B — Web interface:**
-```bash
-streamlit run app.py
+Keep the backend terminal running while using the frontend.
+
+### 3. Set Up the Frontend
+
+Open a second terminal from the repository root:
+
+```powershell
+cd frontend
+npm install
 ```
-Opens a browser-based UI where you can type a URL and instantly see the result.
+
+Create a local `.env` file inside `frontend/` with:
+
+```dotenv
+VITE_API_BASE_URL=http://127.0.0.1:8000
+```
+
+Start the development server:
+
+```powershell
+npm run dev
+```
+
+Open the local URL displayed by Vite, usually:
+
+http://localhost:5173
+
+The backend CORS configuration must allow the frontend's origin. The default configuration supports local development and the deployed frontend; additional origins can be configured with `PHISHGUARD_ALLOWED_ORIGINS`, using comma-separated origins.
+
+## API Endpoints
+
+The API is available at:
+
+https://phishguard-api-qxf5.onrender.com
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/health` | Check API and model status |
+| POST | `/api/scan` | Analyze one URL and save the result |
+| POST | `/api/scan/batch` | Analyze multiple URLs |
+| GET | `/api/history?limit=50` | Retrieve recent scan history |
+
+### Example: Scan a URL
+
+**Request**
+
+```http
+POST /api/scan
+Content-Type: application/json
+```
+
+```json
+{
+  "url": "https://www.google.com"
+}
+```
+
+**Example response structure**
+
+```json
+{
+  "url": "https://www.google.com",
+  "risk_score": 20,
+  "risk_level": "Low",
+  "verdict": "Likely Safe",
+  "model_score": 99.23,
+  "heuristic_score": 0,
+  "analysis_mode": "ml_and_heuristic",
+  "signals": [],
+  "positive_signals": [],
+  "negative_signals": [],
+  "strong_malicious_signals": [],
+  "analysis": {},
+  "scanned_at": "2026-10-17T13:00:09Z"
+}
+```
+
+This illustrates the response structure and a previously observed test result; scores and timestamps can vary by request.
+
+### Health Check
+
+Open:
+
+https://phishguard-api-qxf5.onrender.com/api/health
+
+The health endpoint reports whether the model is ready and which analysis mode is active. A healthy API process alone does not guarantee that the machine-learning artifacts loaded successfully, so check the reported model status as well.
+
+## Running Tests
+
+### Backend Tests
+
+From the repository root, with the backend virtual environment installed:
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m pytest tests -v --basetemp .pytest-run -p no:cacheprovider
+```
+
+### Frontend Tests
+
+From the repository root:
+
+```powershell
+cd frontend
+npm test
+```
+
+### Frontend Production Build
+
+```powershell
+npm run build
+```
+
+### Lint
+
+```powershell
+npm run lint
+```
+
+## Deployment
+
+PhishGuard is deployed on Render.
+
+### Frontend — Static Site
+
+- Repository: `Frostheim29/Phishing-URL-Detector`
+- Branch: `main`
+- Root directory: `frontend`
+- Build command: `npm install && npm run build`
+- Publish directory: `dist`
+- Environment variable:
+
+```dotenv
+VITE_API_BASE_URL=https://phishguard-api-qxf5.onrender.com
+```
+
+Live URL: https://phishing-url-detector-l6tu.onrender.com
+
+### Backend — Web Service
+
+- Repository: `Frostheim29/Phishing-URL-Detector`
+- Branch: `main`
+- Python version: `3.12.10`
+- Build command: `pip install -r backend/requirements.txt`
+- Start command:
+
+```bash
+uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port $PORT
+```
+
+- Health check path: `/api/health`
+- CORS origins are controlled by `PHISHGUARD_ALLOWED_ORIGINS` or the defaults in the backend configuration.
+
+Live API: https://phishguard-api-qxf5.onrender.com
+
+### Free Hosting Limitations
+
+The application is hosted using Render's free services. Free web services can spin down after inactivity, which can make the first request slower.
+
+The backend uses SQLite for scan history. Render's free web service does not provide a persistent disk, so locally stored scan history may be lost after restarts, redeployments, or other service lifecycle events. The current setup is suitable for a demonstration or portfolio project, not guaranteed durable storage for production use.
+
+## Limitations and Responsible Use
+
+- URL classification is probabilistic and can produce false positives and false negatives.
+- A trusted-domain match does not guarantee that every URL or page hosted on that domain is safe.
+- Heuristic rules may miss new or sophisticated phishing techniques.
+- Model performance depends on the training data and its coverage of current phishing patterns.
+- The application analyzes URL characteristics; a verdict is not a guarantee of the destination website's actual behavior.
+- Avoid entering sensitive personal information into unfamiliar websites, even when a scanner reports a low risk score.
+
+Use PhishGuard as an additional security aid alongside browser protections, reputable security tools, and careful verification of links.
 
 ## Future Improvements
-- Expand the trusted domain whitelist or replace it with a maintained public list
-- Train on a more balanced, modern dataset covering a wider range of legitimate website types
-- Combine with live checks (domain age, SSL validity) for a hybrid detection approach
-- Experiment with other models (Random Forest, gradient boosting) on the same n-gram features
-- Build a simple web interface instead of a command-line tool
+
+- Add persistent database storage for scan history.
+- Improve the training dataset with more recent and diverse URL examples.
+- Add more comprehensive model evaluation and monitoring.
+- Expand automated tests and production error monitoring.
+- Improve accessibility and mobile responsiveness.
+- Add additional URL intelligence sources where appropriate.
 
 ## Author
-Ananya Varshney — B.Tech CSE (AI/ML), JSS University
+
+**Ananya Varshney**  
+B.Tech — Computer Science & Engineering (AI/ML)  
+GitHub: [Frostheim29](https://github.com/Frostheim29)
+
+---
+
+If you find this project useful, consider starring the repository on GitHub.
