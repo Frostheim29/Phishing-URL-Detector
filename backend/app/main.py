@@ -11,6 +11,11 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
+from app.core.limits import limiter
+
 from app.api.routes import health, history, scan
 from app.core.config import allowed_origins
 from app.services.history_service import init_database
@@ -18,6 +23,12 @@ from app.services.history_service import init_database
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="PhishGuard API", version="0.1.0")
+
+app.state.limiter = limiter
+app.add_exception_handler(
+    RateLimitExceeded,
+    _rate_limit_exceeded_handler,
+)
 
 init_database()
 
