@@ -6,7 +6,6 @@ from __future__ import annotations
 import logging
 
 from fastapi import FastAPI, Request
-from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -22,7 +21,92 @@ from app.services.history_service import init_database
 
 logger = logging.getLogger(__name__)
 
+class RequestBodyLimitMiddleware:
+    """Reject HTTP request bodies larger than the configured limit."""
+
+    def __init__(self, app, max_body_size: int = 64 * 1024):
+        self.app = app
+        self.max_body_size = max_body_size
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        content_length = None
+        for name, value in scope.get("headers", []):
+            if name.lower() == b"content-length":
+                try:
+                    content_length = int(value)
+                except ValueError:
+                    response = JSONResponse(
+                        status_code=400,
+                        content={"detail": "Invalid Content-Length header."},
+                    )
+                    await response(scope, receive, send)
+                    return
+                break
+
+        if content_length is not None and content_length > self.max_body_size:
+            response = JSONResponse(
+                status_code=413,
+                content={"detail": "Request body is too large."},
+            )
+            await response(scope, receive, send)
+            return
+
+        body_parts = []
+        total_size = 0
+
+        while True:
+            message = await receive()
+
+            if message["type"] == "http.disconnect":
+                return
+
+            if message["type"] != "http.request":
+                continue
+
+            chunk = message.get("body", b"")
+            total_size += len(chunk)
+
+            if total_size > self.max_body_size:
+                response = JSONResponse(
+                    status_code=413,
+                    content={"detail": "Request body is too large."},
+                )
+                await response(scope, receive, send)
+                return
+
+            body_parts.append(chunk)
+
+            if not message.get("more_body", False):
+                break
+
+        body = b"".join(body_parts)
+        body_sent = False
+
+        async def replay_body():
+            nonlocal body_sent
+
+            if not body_sent:
+                body_sent = True
+                return {
+                    "type": "http.request",
+                    "body": body,
+                    "more_body": False,
+                }
+
+            return await receive()
+
+        await self.app(scope, replay_body, send)
+
 app = FastAPI(title="PhishGuard API", version="0.1.0")
+
+app.add_middleware(
+    RequestBodyLimitMiddleware,
+    max_body_size=64 * 1024,
+)
 
 app.state.limiter = limiter
 app.add_exception_handler(
@@ -39,6 +123,7 @@ app.add_middleware(
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
 )
+
 
 
 @app.middleware("http")

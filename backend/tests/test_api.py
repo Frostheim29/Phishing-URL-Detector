@@ -87,3 +87,69 @@ def test_batch_keeps_successes_when_one_item_fails_and_persists_them(client: Tes
     assert body["items"][0]["success"] is True
     assert body["items"][1] == {"url": "https://bad.test", "success": False, "result": None, "error": "URL assessment could not be completed."}
     assert client.get("/api/history?limit=50").json()["total"] == 1
+
+
+def test_request_body_over_64_kb_is_rejected(client: TestClient) -> None:
+    response = client.post(
+        "/api/scan",
+        content=b" " * (64 * 1024 + 1),
+        headers={"Content-Type": "application/json"},
+    )
+
+    assert response.status_code == 413
+    assert response.json()["detail"] == "Request body is too large."
+
+
+
+def test_request_body_over_64_kb_without_content_length_is_rejected() -> None:
+    import asyncio
+
+    from app.main import RequestBodyLimitMiddleware
+
+    body = b" " * (64 * 1024 + 1)
+    sent_messages = []
+    app_called = False
+
+    async def downstream_app(scope, receive, send):
+        nonlocal app_called
+        app_called = True
+
+    async def receive():
+        return {
+            "type": "http.request",
+            "body": body,
+            "more_body": False,
+        }
+
+    async def send(message):
+        sent_messages.append(message)
+
+    async def run_test():
+        middleware = RequestBodyLimitMiddleware(downstream_app)
+
+        # Deliberately omit the Content-Length header.
+        scope = {
+            "type": "http",
+            "asgi": {"version": "3.0"},
+            "http_version": "1.1",
+            "method": "POST",
+            "scheme": "http",
+            "path": "/api/scan",
+            "raw_path": b"/api/scan",
+            "query_string": b"",
+            "headers": [(b"content-type", b"application/json")],
+            "server": ("testserver", 80),
+            "client": ("127.0.0.1", 12345),
+        }
+
+        await middleware(scope, receive, send)
+
+    asyncio.run(run_test())
+
+    assert not app_called
+    assert sent_messages[0]["status"] == 413
+
+    response_body = sent_messages[1]["body"]
+    assert b"Request body is too large." in response_body
+
+ 
