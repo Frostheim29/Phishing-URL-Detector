@@ -18,6 +18,8 @@ from app.schemas.scan import (
 )
 from risk_engine import analyze_url_risk
 
+from fastapi import Request
+from app.core.limits import limiter
 
 router = APIRouter(prefix="/api", tags=["scan"])
 
@@ -43,7 +45,8 @@ def make_scan_response(result: dict) -> ScanResponse:
 
 
 @router.post("/scan", response_model=ScanResponse)
-def scan_url(payload: ScanRequest) -> ScanResponse:
+@limiter.limit("20/minute")
+def scan_url(request: Request, payload: ScanRequest) -> ScanResponse:
     """Assess one URL and save the result to scan history."""
     try:
         result = analyze_url_risk(payload.url)
@@ -62,7 +65,8 @@ def scan_url(payload: ScanRequest) -> ScanResponse:
 
 
 @router.post("/scan/batch", response_model=BatchScanResponse)
-def scan_urls_batch(payload: BatchScanRequest) -> BatchScanResponse:
+@limiter.limit("5/minute")
+def scan_urls_batch(request: Request, payload: BatchScanRequest,) -> BatchScanResponse:
     """Assess up to 100 URLs, allowing one failure without stopping the batch."""
     items: list[BatchScanItem] = []
 

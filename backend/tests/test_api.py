@@ -71,8 +71,8 @@ def test_scan_rejects_invalid_payloads(client: TestClient, payload: dict) -> Non
     assert response.json()["detail"] == "Invalid scan request."
 
 
-def test_batch_rejects_more_than_100_urls(client: TestClient) -> None:
-    response = client.post("/api/scan/batch", json={"urls": ["https://example.test"] * 101})
+def test_batch_rejects_more_than_25_urls(client: TestClient) -> None:
+    response = client.post("/api/scan/batch", json={"urls": ["https://example.test"] * 26})
     assert response.status_code == 422
     assert response.json()["detail"] == "Invalid scan request."
 

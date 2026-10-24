@@ -37,7 +37,7 @@ class BatchScanTests(TestCase):
     @patch("app.api.routes.scan.analyze_url_risk")
     def test_batch_persists_successful_assessments(self, analyze, save) -> None:
         analyze.side_effect = lambda url: engine_result(url)
-        response = scan_urls_batch(BatchScanRequest(urls=["https://one.example", "https://two.example"]))
+        response = scan_urls_batch.__wrapped__(None, BatchScanRequest(urls=["https://one.example", "https://two.example"]),)
         self.assertEqual(response.summary.processed, 2)
         self.assertEqual(response.summary.successful, 2)
         self.assertEqual(response.summary.failed, 0)
@@ -48,7 +48,7 @@ class BatchScanTests(TestCase):
     @patch("app.api.routes.scan.analyze_url_risk")
     def test_one_url_failure_does_not_discard_other_results(self, analyze, save) -> None:
         analyze.side_effect = [engine_result("https://good.example"), RuntimeError("model issue")]
-        response = scan_urls_batch(BatchScanRequest(urls=["https://good.example", "https://bad.example"]))
+        response = scan_urls_batch.__wrapped__(None, BatchScanRequest(urls=["https://good.example", "https://bad.example"]),)
         self.assertEqual(response.summary.successful, 1)
         self.assertEqual(response.summary.failed, 1)
         self.assertTrue(response.items[0].success)

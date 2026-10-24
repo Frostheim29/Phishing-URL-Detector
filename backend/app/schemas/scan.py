@@ -38,8 +38,7 @@ class ScanResponse(BaseModel):
 
 class BatchScanRequest(BaseModel):
     """A bounded group of URLs to assess without making network requests."""
-
-    urls: list[StrictStr] = Field(..., min_length=1, max_length=100, description="1 to 100 URLs to assess")
+    urls: list[StrictStr] = Field(..., min_length=1, max_length=25, description="1 to 25 URLs to assess")
 
     @field_validator("urls")
     @classmethod
